@@ -20,6 +20,10 @@ This mod is intended to be a gentle bridge for Straw Harvest-style hay pellets i
 
 The conversion is applied only when the receiving target already supports normal hay and does not explicitly support hay pellets. That keeps dedicated pellet storage, pellet processors, and pellet-burning production chains intact.
 
+## Asset Notes
+
+The runtime mod icon is `icon_hayPelletCompatibility.dds`, built as a 512x512 BC1/DXT1 DDS with one image level for ModHub-style packaging. Original generated icon source artwork is preserved on branch `asset-source/modhub-icon-v0.1.1`.
+
 ## Current Scope
 
 Covered:

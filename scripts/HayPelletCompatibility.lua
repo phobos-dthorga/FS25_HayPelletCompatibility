@@ -107,6 +107,10 @@ function HPC:addMixerWagonFillUnitFillLevel(mixerWagonFunc, superFunc, farmId, f
     return mixerWagonFunc(self, superFunc, farmId, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData)
 end
 
+function HPC:isEconomySellingTarget(target)
+    return target ~= nil and (target.pricingDynamics ~= nil or target.totalReceived ~= nil or target.totalPaid ~= nil)
+end
+
 function HPC:targetAllowsFillType(target, fillTypeIndex, extraAttributes)
     if target ~= nil and target.getIsFillTypeAllowed ~= nil then
         return target:getIsFillTypeAllowed(fillTypeIndex, extraAttributes) == true
@@ -118,6 +122,10 @@ end
 function HPC:configureUnloadTrigger(unloadTrigger)
     local sourceFillType, targetFillType = self:getConversionFillTypes()
     if sourceFillType == nil or unloadTrigger == nil or unloadTrigger.fillTypeConversions == nil then
+        return
+    end
+
+    if self:isEconomySellingTarget(unloadTrigger.target) then
         return
     end
 
@@ -179,6 +187,10 @@ end
 function HPC:stationShouldConvert(station)
     local sourceFillType, targetFillType = self:getConversionFillTypes()
     if sourceFillType == nil or station == nil or station.supportedFillTypes == nil then
+        return false
+    end
+
+    if self:isEconomySellingTarget(station) then
         return false
     end
 

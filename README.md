@@ -14,15 +14,15 @@ Download the latest zip from [Releases](https://github.com/phobos-dthorga/FS25_H
 
 - Converts `HAY_PELLETS` into `DRYGRASS_WINDROW`.
 - Uses the expected 1:4 ratio: `250 L HAY_PELLETS -> 1000 L DRYGRASS_WINDROW`.
-- Covers normal fill units, mixer wagons, unload triggers, and animal feeding troughs.
-- Leaves pellet-specific storage, productions, and vehicles alone.
+- Covers normal fill units, mixer wagons, storage-style unload triggers, and animal feeding troughs.
+- Leaves pellet-specific storage, productions, selling stations, and vehicles alone.
 - Does nothing quietly when `HAY_PELLETS` is not loaded.
 
 ## Compatibility Notes
 
 This mod does not edit map files, vehicle XML, production XML, or third-party mods. The conversion happens at runtime and only bridges targets that already know how to receive hay.
 
-That keeps dedicated pellet yards, pellet processors, and pellet-burning production chains intact.
+That keeps dedicated pellet yards, pellet processors, pellet-burning production chains, and native hay-pellet sell points intact.
 
 ## Notes For Modders
 
@@ -37,7 +37,7 @@ Covered now:
 
 - Trailers and other normal fill units
 - Mixer wagons
-- Placeable unload triggers
+- Storage-style placeable unload triggers
 - Husbandry feeding troughs
 - Direct husbandry food additions
 - Native FS25 fill-type converter registration under `HAY_PELLETS_TO_HAY`
@@ -45,5 +45,6 @@ Covered now:
 Not covered by design:
 
 - Straw pellets
+- Selling stations and economy/pricing targets that already handle hay pellets directly
 - Custom scripts that bypass FS25 fill units and unload triggers entirely
 - Any target that intentionally defines its own `HAY_PELLETS` behavior

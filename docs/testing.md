@@ -10,12 +10,12 @@ Recommended in-game smoke tests:
 6. Confirm the mixer treats it as hay, not as pellets or another fill type.
 7. Put hay pellets into an animal feeding trough that accepts hay.
 8. Confirm the animals receive normal hay at the 1:4 ratio.
-9. Put hay pellets into a pellet-specific storage or production input.
-10. Confirm the pellets remain `HAY_PELLETS`.
+9. Put hay pellets into a pellet-specific storage, production input, or sell point.
+10. Confirm the pellets remain `HAY_PELLETS` there so native pellet handling is preserved.
 
 Regression checks:
 
 - The game log should not contain Lua call-stack errors from `FS25_HayPelletCompatibility`.
 - Vehicle loading should not pause indefinitely with `FS25_HayPelletCompatibility` enabled.
 - A save without `HAY_PELLETS` loaded should not produce missing-fill-type warnings from this mod.
-- Pellet-specific yards, productions, or silos should continue storing `HAY_PELLETS` as pellets.
+- Pellet-specific yards, productions, silos, and sell points should continue handling `HAY_PELLETS` as pellets.

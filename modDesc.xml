@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<modDesc descVersion="107" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://validation.gdn.giants-software.com/xml/fs25/modDesc.xsd">
+    <author>phobosgekko</author>
+    <version>0.1.0.0</version>
+    <title>
+        <en>Hay Pellet Compatibility</en>
+        <de>Heupellet-Kompatibilitaet</de>
+    </title>
+    <description>
+        <en>Converts hay pellets into regular hay at a 1:4 pellet-to-hay ratio when loading into vehicles, mixer wagons, unload triggers, and husbandries that normally accept hay but do not explicitly accept hay pellets.</en>
+        <de>Wandelt Heupellets im Verhaeltnis 1:4 in normales Heu um, wenn Fahrzeuge, Futtermischwagen, Abladepunkte und Tierhaltungen Heu akzeptieren, aber Heupellets nicht ausdruecklich unterstuetzen.</de>
+    </description>
+
+    <multiplayer supported="true"/>
+    <iconFilename>icon.png</iconFilename>
+
+    <extraSourceFiles>
+        <sourceFile filename="scripts/HayPelletCompatibility.lua"/>
+    </extraSourceFiles>
+</modDesc>

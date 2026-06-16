@@ -10,8 +10,10 @@ Recommended in-game smoke tests:
 6. Confirm the mixer treats it as hay, not as pellets or another fill type.
 7. Put hay pellets into an animal feeding trough that accepts hay.
 8. Confirm the animals receive normal hay at the 1:4 ratio.
-9. Put hay pellets into a pellet-specific storage, production input, or sell point.
-10. Confirm the pellets remain `HAY_PELLETS` there so native pellet handling is preserved.
+9. Put hay pellets into a compatible hay loft whose unload trigger uses the `hayloft` fill-type category.
+10. Confirm the hay loft stores `DRYGRASS_WINDROW` and gains four times the pellet liters accepted.
+11. Put hay pellets into a pellet-specific storage, production input, or sell point.
+12. Confirm the pellets remain `HAY_PELLETS` there so native pellet handling is preserved.
 
 Regression checks:
 
@@ -19,3 +21,4 @@ Regression checks:
 - Vehicle loading should not pause indefinitely with `FS25_HayPelletCompatibility` enabled.
 - A save without `HAY_PELLETS` loaded should not produce missing-fill-type warnings from this mod.
 - Pellet-specific yards, productions, silos, and sell points should continue handling `HAY_PELLETS` as pellets.
+- Saves without Metal Hay Lofts or another `hayloft` category storage should load without dependency warnings.

@@ -13,10 +13,15 @@ from xml.etree import ElementTree as ET
 
 EXPECTED_ICON = "icon_hayPelletCompatibility.dds"
 FORBIDDEN_GLOBAL_HOOKS = (
-    "UnloadTrigger.load =",
     "UnloadTrigger.loadFillTypes =",
     "UnloadTrigger.setTarget =",
     "UnloadingStation.addFillLevelFromTool =",
+)
+HAYLOFT_HOOK = "UnloadTrigger.load ="
+HAYLOFT_HOOK_GUARDS = (
+    "configureHayLoftUnloadTrigger",
+    "HAYLOFT_FILL_TYPE_CATEGORY_NAME",
+    'xmlNode .. "#fillTypeCategories"',
 )
 
 
@@ -103,6 +108,10 @@ def validate_lua_hooks(root: Path, validation: Validation) -> None:
     for forbidden in FORBIDDEN_GLOBAL_HOOKS:
         if forbidden in source:
             validation.error(f"Lua bridge must not install broad map unload hook: {forbidden}")
+    if HAYLOFT_HOOK in source:
+        for guard in HAYLOFT_HOOK_GUARDS:
+            if guard not in source:
+                validation.error(f"UnloadTrigger.load hook must stay guarded by hayloft detection: missing {guard}")
 
 
 def validate_package(zip_path: Path, validation: Validation) -> None:

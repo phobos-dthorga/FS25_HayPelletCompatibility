@@ -1,10 +1,12 @@
 HayPelletCompatibility = {
     MOD_NAME = g_currentModName or "FS25_HayPelletCompatibility",
     CONVERTER_NAME = "HAY_PELLETS_TO_HAY",
+    HAYLOFT_FILL_TYPE_CATEGORY_NAME = "hayloft",
     SOURCE_FILL_TYPE_NAME = "HAY_PELLETS",
     TARGET_FILL_TYPE_NAME = "DRYGRASS_WINDROW",
     CONVERSION_FACTOR = 4,
-    converterRegistered = false
+    converterRegistered = false,
+    hayLoftCompatibilityLogged = false
 }
 
 local HPC = HayPelletCompatibility
@@ -107,27 +109,81 @@ function HPC:addMixerWagonFillUnitFillLevel(mixerWagonFunc, superFunc, farmId, f
     return mixerWagonFunc(self, superFunc, farmId, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData)
 end
 
-function HPC:configureHusbandryFeedingTrough(feedingTrough)
+function HPC:targetAllowsFillType(target, fillTypeIndex, extraAttributes)
+    if target == nil or target.getIsFillTypeAllowed == nil then
+        return false
+    end
+
+    local success, allowed = pcall(target.getIsFillTypeAllowed, target, fillTypeIndex, extraAttributes)
+    return success and allowed == true
+end
+
+function HPC:xmlNodeHasFillTypeCategory(xmlFile, xmlNode, categoryName)
+    if xmlFile == nil or xmlNode == nil or xmlFile.getValue == nil then
+        return false
+    end
+
+    local categories = xmlFile:getValue(xmlNode .. "#fillTypeCategories")
+    if type(categories) ~= "string" then
+        return false
+    end
+
+    categoryName = string.lower(categoryName)
+    for category in string.gmatch(categories, "%S+") do
+        if string.lower(category) == categoryName then
+            return true
+        end
+    end
+
+    return false
+end
+
+function HPC:addConversionToUnloadTrigger(unloadTrigger)
     local sourceFillType, targetFillType = self:getConversionFillTypes()
-    if sourceFillType == nil or feedingTrough == nil or feedingTrough.fillTypeConversions == nil then
-        return
+    if sourceFillType == nil or unloadTrigger == nil or unloadTrigger.fillTypeConversions == nil then
+        return false
     end
 
-    if feedingTrough.fillTypeConversions[sourceFillType] ~= nil then
-        return
+    if unloadTrigger.fillTypeConversions[sourceFillType] ~= nil then
+        return false
     end
 
-    if feedingTrough.fillTypes ~= nil and feedingTrough.fillTypes[targetFillType] == nil then
-        return
+    if unloadTrigger.fillTypes ~= nil and unloadTrigger.fillTypes[targetFillType] == nil then
+        return false
     end
 
-    feedingTrough.fillTypeConversions[sourceFillType] = {
+    if not self:targetAllowsFillType(unloadTrigger.target, targetFillType, unloadTrigger.extraAttributes) then
+        return false
+    end
+
+    if self:targetAllowsFillType(unloadTrigger.target, sourceFillType, unloadTrigger.extraAttributes) then
+        return false
+    end
+
+    unloadTrigger.fillTypeConversions[sourceFillType] = {
         outgoingFillType = targetFillType,
         ratio = self.CONVERSION_FACTOR
     }
 
-    if feedingTrough.fillTypes ~= nil then
-        feedingTrough.fillTypes[sourceFillType] = true
+    if unloadTrigger.fillTypes ~= nil then
+        unloadTrigger.fillTypes[sourceFillType] = true
+    end
+
+    return true
+end
+
+function HPC:configureHusbandryFeedingTrough(feedingTrough)
+    self:addConversionToUnloadTrigger(feedingTrough)
+end
+
+function HPC:configureHayLoftUnloadTrigger(unloadTrigger, xmlFile, xmlNode)
+    if not self:xmlNodeHasFillTypeCategory(xmlFile, xmlNode, self.HAYLOFT_FILL_TYPE_CATEGORY_NAME) then
+        return
+    end
+
+    if self:addConversionToUnloadTrigger(unloadTrigger) and not self.hayLoftCompatibilityLogged then
+        self.hayLoftCompatibilityLogged = true
+        Logging.info("%s: enabled optional hayloft unload trigger compatibility", self.MOD_NAME)
     end
 end
 
@@ -196,6 +252,12 @@ FillUnit.addFillUnitFillLevel = Utils.overwrittenFunction(FillUnit.addFillUnitFi
 
 if MixerWagon ~= nil then
     MixerWagon.addFillUnitFillLevel = Utils.overwrittenFunction(MixerWagon.addFillUnitFillLevel, HPC.addMixerWagonFillUnitFillLevel)
+end
+
+if UnloadTrigger ~= nil then
+    UnloadTrigger.load = Utils.appendedFunction(UnloadTrigger.load, function(unloadTrigger, components, xmlFile, xmlNode)
+        HPC:configureHayLoftUnloadTrigger(unloadTrigger, xmlFile, xmlNode)
+    end)
 end
 
 if PlaceableHusbandryFood ~= nil then

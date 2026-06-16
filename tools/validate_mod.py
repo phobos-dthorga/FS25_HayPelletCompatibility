@@ -22,6 +22,8 @@ HAYLOFT_HOOK_GUARDS = (
     "loadUnloadTrigger",
     "return success",
     "configureHayLoftUnloadTrigger",
+    "addConversionToUnloadTrigger(unloadTrigger, true)",
+    "unloadTrigger.fillTypes[sourceFillType]",
     "HAYLOFT_FILL_TYPE_CATEGORY_NAME",
     'xmlNode .. "#fillTypeCategories"',
 )

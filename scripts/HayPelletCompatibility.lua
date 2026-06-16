@@ -138,7 +138,7 @@ function HPC:xmlNodeHasFillTypeCategory(xmlFile, xmlNode, categoryName)
     return false
 end
 
-function HPC:addConversionToUnloadTrigger(unloadTrigger)
+function HPC:addConversionToUnloadTrigger(unloadTrigger, skipTargetSupportCheck)
     local sourceFillType, targetFillType = self:getConversionFillTypes()
     if sourceFillType == nil or unloadTrigger == nil or unloadTrigger.fillTypeConversions == nil then
         return false
@@ -152,12 +152,18 @@ function HPC:addConversionToUnloadTrigger(unloadTrigger)
         return false
     end
 
-    if not self:targetAllowsFillType(unloadTrigger.target, targetFillType, unloadTrigger.extraAttributes) then
+    if unloadTrigger.fillTypes ~= nil and unloadTrigger.fillTypes[sourceFillType] ~= nil then
         return false
     end
 
-    if self:targetAllowsFillType(unloadTrigger.target, sourceFillType, unloadTrigger.extraAttributes) then
-        return false
+    if not skipTargetSupportCheck then
+        if not self:targetAllowsFillType(unloadTrigger.target, targetFillType, unloadTrigger.extraAttributes) then
+            return false
+        end
+
+        if self:targetAllowsFillType(unloadTrigger.target, sourceFillType, unloadTrigger.extraAttributes) then
+            return false
+        end
     end
 
     unloadTrigger.fillTypeConversions[sourceFillType] = {
@@ -181,7 +187,7 @@ function HPC:configureHayLoftUnloadTrigger(unloadTrigger, xmlFile, xmlNode)
         return
     end
 
-    if self:addConversionToUnloadTrigger(unloadTrigger) and not self.hayLoftCompatibilityLogged then
+    if self:addConversionToUnloadTrigger(unloadTrigger, true) and not self.hayLoftCompatibilityLogged then
         self.hayLoftCompatibilityLogged = true
         Logging.info("%s: enabled optional hayloft unload trigger compatibility", self.MOD_NAME)
     end

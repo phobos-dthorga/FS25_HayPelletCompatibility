@@ -89,12 +89,22 @@ end
 
 function HPC:addFillUnitFillLevel(superFunc, farmId, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData)
     local sourceFillType, targetFillType = HPC:getConversionFillTypes()
-    if fillLevelDelta > 0 and fillTypeIndex == sourceFillType and HPC:vehicleShouldConvert(self, fillUnitIndex) then
+    if type(fillLevelDelta) == "number" and fillLevelDelta > 0 and fillTypeIndex == sourceFillType and HPC:vehicleShouldConvert(self, fillUnitIndex) then
         local appliedTarget = superFunc(self, farmId, fillUnitIndex, fillLevelDelta * HPC.CONVERSION_FACTOR, targetFillType, toolType, fillPositionData)
         return appliedTarget / HPC.CONVERSION_FACTOR
     end
 
     return superFunc(self, farmId, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData)
+end
+
+function HPC:addMixerWagonFillUnitFillLevel(mixerWagonFunc, superFunc, farmId, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData)
+    local sourceFillType, targetFillType = HPC:getConversionFillTypes()
+    if type(fillLevelDelta) == "number" and fillLevelDelta > 0 and fillTypeIndex == sourceFillType and HPC:vehicleShouldConvert(self, fillUnitIndex) then
+        local appliedTarget = mixerWagonFunc(self, superFunc, farmId, fillUnitIndex, fillLevelDelta * HPC.CONVERSION_FACTOR, targetFillType, toolType, fillPositionData)
+        return appliedTarget / HPC.CONVERSION_FACTOR
+    end
+
+    return mixerWagonFunc(self, superFunc, farmId, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData)
 end
 
 function HPC:targetAllowsFillType(target, fillTypeIndex, extraAttributes)
@@ -216,7 +226,7 @@ FillUnit.getFillUnitAllowsFillType = Utils.overwrittenFunction(FillUnit.getFillU
 FillUnit.addFillUnitFillLevel = Utils.overwrittenFunction(FillUnit.addFillUnitFillLevel, HPC.addFillUnitFillLevel)
 
 if MixerWagon ~= nil then
-    MixerWagon.addFillUnitFillLevel = Utils.overwrittenFunction(MixerWagon.addFillUnitFillLevel, HPC.addFillUnitFillLevel)
+    MixerWagon.addFillUnitFillLevel = Utils.overwrittenFunction(MixerWagon.addFillUnitFillLevel, HPC.addMixerWagonFillUnitFillLevel)
 end
 
 if UnloadTrigger ~= nil then

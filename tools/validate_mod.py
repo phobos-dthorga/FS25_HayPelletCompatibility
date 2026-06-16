@@ -19,6 +19,8 @@ FORBIDDEN_GLOBAL_HOOKS = (
 )
 HAYLOFT_HOOK = "UnloadTrigger.load ="
 HAYLOFT_HOOK_GUARDS = (
+    "loadUnloadTrigger",
+    "return success",
     "configureHayLoftUnloadTrigger",
     "HAYLOFT_FILL_TYPE_CATEGORY_NAME",
     'xmlNode .. "#fillTypeCategories"',

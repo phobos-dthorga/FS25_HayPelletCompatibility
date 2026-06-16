@@ -187,6 +187,15 @@ function HPC:configureHayLoftUnloadTrigger(unloadTrigger, xmlFile, xmlNode)
     end
 end
 
+function HPC:loadUnloadTrigger(superFunc, components, xmlFile, xmlNode, target, extraAttributes, i3dMappings)
+    local success = superFunc(self, components, xmlFile, xmlNode, target, extraAttributes, i3dMappings)
+    if success then
+        HPC:configureHayLoftUnloadTrigger(self, xmlFile, xmlNode)
+    end
+
+    return success
+end
+
 function HPC:configureHusbandryFood(placeable)
     local spec = placeable.spec_husbandryFood
     local sourceFillType, targetFillType = self:getConversionFillTypes()
@@ -255,9 +264,7 @@ if MixerWagon ~= nil then
 end
 
 if UnloadTrigger ~= nil then
-    UnloadTrigger.load = Utils.appendedFunction(UnloadTrigger.load, function(unloadTrigger, components, xmlFile, xmlNode)
-        HPC:configureHayLoftUnloadTrigger(unloadTrigger, xmlFile, xmlNode)
-    end)
+    UnloadTrigger.load = Utils.overwrittenFunction(UnloadTrigger.load, HPC.loadUnloadTrigger)
 end
 
 if PlaceableHusbandryFood ~= nil then

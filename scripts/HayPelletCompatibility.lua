@@ -91,7 +91,7 @@ function HPC:addFillUnitFillLevel(superFunc, farmId, fillUnitIndex, fillLevelDel
     local sourceFillType, targetFillType = HPC:getConversionFillTypes()
     if type(fillLevelDelta) == "number" and fillLevelDelta > 0 and fillTypeIndex == sourceFillType and HPC:vehicleShouldConvert(self, fillUnitIndex) then
         local appliedTarget = superFunc(self, farmId, fillUnitIndex, fillLevelDelta * HPC.CONVERSION_FACTOR, targetFillType, toolType, fillPositionData)
-        return appliedTarget / HPC.CONVERSION_FACTOR
+        return (appliedTarget or 0) / HPC.CONVERSION_FACTOR
     end
 
     return superFunc(self, farmId, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData)
@@ -101,53 +101,33 @@ function HPC:addMixerWagonFillUnitFillLevel(mixerWagonFunc, superFunc, farmId, f
     local sourceFillType, targetFillType = HPC:getConversionFillTypes()
     if type(fillLevelDelta) == "number" and fillLevelDelta > 0 and fillTypeIndex == sourceFillType and HPC:vehicleShouldConvert(self, fillUnitIndex) then
         local appliedTarget = mixerWagonFunc(self, superFunc, farmId, fillUnitIndex, fillLevelDelta * HPC.CONVERSION_FACTOR, targetFillType, toolType, fillPositionData)
-        return appliedTarget / HPC.CONVERSION_FACTOR
+        return (appliedTarget or 0) / HPC.CONVERSION_FACTOR
     end
 
     return mixerWagonFunc(self, superFunc, farmId, fillUnitIndex, fillLevelDelta, fillTypeIndex, toolType, fillPositionData)
 end
 
-function HPC:isEconomySellingTarget(target)
-    return target ~= nil and (target.pricingDynamics ~= nil or target.totalReceived ~= nil or target.totalPaid ~= nil)
-end
-
-function HPC:targetAllowsFillType(target, fillTypeIndex, extraAttributes)
-    if target ~= nil and target.getIsFillTypeAllowed ~= nil then
-        return target:getIsFillTypeAllowed(fillTypeIndex, extraAttributes) == true
-    end
-
-    return false
-end
-
-function HPC:configureUnloadTrigger(unloadTrigger)
+function HPC:configureHusbandryFeedingTrough(feedingTrough)
     local sourceFillType, targetFillType = self:getConversionFillTypes()
-    if sourceFillType == nil or unloadTrigger == nil or unloadTrigger.fillTypeConversions == nil then
+    if sourceFillType == nil or feedingTrough == nil or feedingTrough.fillTypeConversions == nil then
         return
     end
 
-    if self:isEconomySellingTarget(unloadTrigger.target) then
+    if feedingTrough.fillTypeConversions[sourceFillType] ~= nil then
         return
     end
 
-    if unloadTrigger.fillTypeConversions[sourceFillType] ~= nil then
+    if feedingTrough.fillTypes ~= nil and feedingTrough.fillTypes[targetFillType] == nil then
         return
     end
 
-    if not self:targetAllowsFillType(unloadTrigger.target, targetFillType, unloadTrigger.extraAttributes) then
-        return
-    end
-
-    if self:targetAllowsFillType(unloadTrigger.target, sourceFillType, unloadTrigger.extraAttributes) then
-        return
-    end
-
-    unloadTrigger.fillTypeConversions[sourceFillType] = {
+    feedingTrough.fillTypeConversions[sourceFillType] = {
         outgoingFillType = targetFillType,
         ratio = self.CONVERSION_FACTOR
     }
 
-    if unloadTrigger.fillTypes ~= nil and unloadTrigger.fillTypes[targetFillType] ~= nil then
-        unloadTrigger.fillTypes[sourceFillType] = true
+    if feedingTrough.fillTypes ~= nil then
+        feedingTrough.fillTypes[sourceFillType] = true
     end
 end
 
@@ -165,7 +145,7 @@ function HPC:configureHusbandryFood(placeable)
 
     if spec.feedingTroughs ~= nil then
         for _, feedingTrough in ipairs(spec.feedingTroughs) do
-            self:configureUnloadTrigger(feedingTrough)
+            self:configureHusbandryFeedingTrough(feedingTrough)
         end
     end
 end
@@ -174,34 +154,11 @@ function HPC:addFood(superFunc, farmId, deltaFillLevel, fillTypeIndex, fillPosit
     local sourceFillType, targetFillType = HPC:getConversionFillTypes()
     local spec = self.spec_husbandryFood
 
-    if deltaFillLevel > 0 and fillTypeIndex == sourceFillType and spec ~= nil and spec.supportedFillTypes ~= nil then
+    if type(deltaFillLevel) == "number" and deltaFillLevel > 0 and fillTypeIndex == sourceFillType and spec ~= nil and spec.supportedFillTypes ~= nil then
         if spec.supportedFillTypes[targetFillType] ~= nil and spec.supportedFillTypes[sourceFillType] == nil then
             local appliedTarget = superFunc(self, farmId, deltaFillLevel * HPC.CONVERSION_FACTOR, targetFillType, fillPositionData, toolType, extraAttributes)
-            return appliedTarget / HPC.CONVERSION_FACTOR
+            return (appliedTarget or 0) / HPC.CONVERSION_FACTOR
         end
-    end
-
-    return superFunc(self, farmId, deltaFillLevel, fillTypeIndex, fillPositionData, toolType, extraAttributes)
-end
-
-function HPC:stationShouldConvert(station)
-    local sourceFillType, targetFillType = self:getConversionFillTypes()
-    if sourceFillType == nil or station == nil or station.supportedFillTypes == nil then
-        return false
-    end
-
-    if self:isEconomySellingTarget(station) then
-        return false
-    end
-
-    return station.supportedFillTypes[targetFillType] ~= nil and station.supportedFillTypes[sourceFillType] == nil
-end
-
-function HPC:addFillLevelFromTool(superFunc, farmId, deltaFillLevel, fillTypeIndex, fillPositionData, toolType, extraAttributes)
-    local sourceFillType, targetFillType = HPC:getConversionFillTypes()
-    if deltaFillLevel > 0 and fillTypeIndex == sourceFillType and HPC:stationShouldConvert(self) then
-        local appliedTarget = superFunc(self, farmId, deltaFillLevel * HPC.CONVERSION_FACTOR, targetFillType, fillPositionData, toolType, extraAttributes)
-        return appliedTarget / HPC.CONVERSION_FACTOR
     end
 
     return superFunc(self, farmId, deltaFillLevel, fillTypeIndex, fillPositionData, toolType, extraAttributes)
@@ -241,28 +198,10 @@ if MixerWagon ~= nil then
     MixerWagon.addFillUnitFillLevel = Utils.overwrittenFunction(MixerWagon.addFillUnitFillLevel, HPC.addMixerWagonFillUnitFillLevel)
 end
 
-if UnloadTrigger ~= nil then
-    UnloadTrigger.load = Utils.appendedFunction(UnloadTrigger.load, function(unloadTrigger)
-        HPC:configureUnloadTrigger(unloadTrigger)
-    end)
-
-    UnloadTrigger.loadFillTypes = Utils.appendedFunction(UnloadTrigger.loadFillTypes, function(unloadTrigger)
-        HPC:configureUnloadTrigger(unloadTrigger)
-    end)
-
-    UnloadTrigger.setTarget = Utils.appendedFunction(UnloadTrigger.setTarget, function(unloadTrigger)
-        HPC:configureUnloadTrigger(unloadTrigger)
-    end)
-end
-
 if PlaceableHusbandryFood ~= nil then
     PlaceableHusbandryFood.onPostLoad = Utils.appendedFunction(PlaceableHusbandryFood.onPostLoad, function(placeable)
         HPC:configureHusbandryFood(placeable)
     end)
 
     PlaceableHusbandryFood.addFood = Utils.overwrittenFunction(PlaceableHusbandryFood.addFood, HPC.addFood)
-end
-
-if UnloadingStation ~= nil and UnloadingStation.addFillLevelFromTool ~= nil then
-    UnloadingStation.addFillLevelFromTool = Utils.overwrittenFunction(UnloadingStation.addFillLevelFromTool, HPC.addFillLevelFromTool)
 end

@@ -12,6 +12,12 @@ from xml.etree import ElementTree as ET
 
 
 EXPECTED_ICON = "icon_hayPelletCompatibility.dds"
+FORBIDDEN_GLOBAL_HOOKS = (
+    "UnloadTrigger.load =",
+    "UnloadTrigger.loadFillTypes =",
+    "UnloadTrigger.setTarget =",
+    "UnloadingStation.addFillLevelFromTool =",
+)
 
 
 class Validation:
@@ -87,6 +93,18 @@ def validate_moddesc(root: Path, validation: Validation) -> None:
             validation.error(f"modDesc.xml references missing sourceFile: {filename}")
 
 
+def validate_lua_hooks(root: Path, validation: Validation) -> None:
+    lua_path = root / "scripts" / "HayPelletCompatibility.lua"
+    if not lua_path.is_file():
+        validation.error("Missing Lua bridge script")
+        return
+
+    source = lua_path.read_text(encoding="utf-8")
+    for forbidden in FORBIDDEN_GLOBAL_HOOKS:
+        if forbidden in source:
+            validation.error(f"Lua bridge must not install broad map unload hook: {forbidden}")
+
+
 def validate_package(zip_path: Path, validation: Validation) -> None:
     try:
         with zipfile.ZipFile(zip_path) as archive:
@@ -118,6 +136,7 @@ def main() -> int:
 
     validation = Validation()
     validate_moddesc(Path(args.repo_root), validation)
+    validate_lua_hooks(Path(args.repo_root), validation)
     if args.package:
         validate_package(Path(args.package), validation)
     return validation.report()

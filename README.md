@@ -1,10 +1,10 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/phobos-dthorga/FS25_HayPelletCompatibility/asset-source/modhub-icon-v0.1.1/assets/source/modIcon/hay-pellet-compatibility-ai-source.png" alt="Hay pellet pallet converting into loose hay" width="420">
   <h1>FS25 Hay Pellet Compatibility</h1>
-  <p><strong>Hay pellets behave like regular hay wherever hay is already accepted.</strong></p>
+  <p><strong>Hay pellets behave like regular hay in trailers, mixer wagons, and animal feeding troughs.</strong></p>
 </div>
 
-A small Farming Simulator 25 compatibility mod for Straw Harvest-style hay pellets. It converts `HAY_PELLETS` into `DRYGRASS_WINDROW` only when the receiving target accepts normal hay but does not explicitly support hay pellets.
+A small Farming Simulator 25 compatibility mod for Straw Harvest-style hay pellets. It converts `HAY_PELLETS` into `DRYGRASS_WINDROW` when a vehicle, mixer wagon, or husbandry feeding trough accepts normal hay but does not explicitly support hay pellets.
 
 ## Download
 
@@ -14,15 +14,15 @@ Download the latest zip from [Releases](https://github.com/phobos-dthorga/FS25_H
 
 - Converts `HAY_PELLETS` into `DRYGRASS_WINDROW`.
 - Uses the expected 1:4 ratio: `250 L HAY_PELLETS -> 1000 L DRYGRASS_WINDROW`.
-- Covers normal fill units, mixer wagons, storage-style unload triggers, and animal feeding troughs.
-- Leaves pellet-specific storage, productions, selling stations, and vehicles alone.
+- Covers normal fill units, mixer wagons, and animal feeding troughs.
+- Leaves generic placeable unload triggers, pellet-specific storage, productions, selling stations, and vehicles alone.
 - Does nothing quietly when `HAY_PELLETS` is not loaded.
 
 ## Compatibility Notes
 
-This mod does not edit map files, vehicle XML, production XML, or third-party mods. The conversion happens at runtime and only bridges targets that already know how to receive hay.
+This mod does not edit map files, vehicle XML, production XML, or third-party mods. The conversion happens at runtime and only bridges explicit vehicle and husbandry targets that already know how to receive hay.
 
-That keeps dedicated pellet yards, pellet processors, pellet-burning production chains, and native hay-pellet sell points intact.
+That keeps dedicated pellet yards, pellet processors, pellet-burning production chains, native hay-pellet sell points, and custom map production triggers intact.
 
 ## Notes For Modders
 
@@ -37,7 +37,6 @@ Covered now:
 
 - Trailers and other normal fill units
 - Mixer wagons
-- Storage-style placeable unload triggers
 - Husbandry feeding troughs
 - Direct husbandry food additions
 - Native FS25 fill-type converter registration under `HAY_PELLETS_TO_HAY`
@@ -45,6 +44,7 @@ Covered now:
 Not covered by design:
 
 - Straw pellets
+- Generic placeable unload triggers, including production inputs, silos, and selling stations
 - Selling stations and economy/pricing targets that already handle hay pellets directly
 - Custom scripts that bypass FS25 fill units and unload triggers entirely
 - Any target that intentionally defines its own `HAY_PELLETS` behavior

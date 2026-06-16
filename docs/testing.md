@@ -1,4 +1,4 @@
-# Testing Notes
+# Testing
 
 Recommended in-game smoke tests:
 
@@ -16,3 +16,4 @@ Regression checks:
 
 - The game log should not contain Lua call-stack errors from `FS25_HayPelletCompatibility`.
 - A save without `HAY_PELLETS` loaded should not produce missing-fill-type warnings from this mod.
+- Pellet-specific yards, productions, or silos should continue storing `HAY_PELLETS` as pellets.
